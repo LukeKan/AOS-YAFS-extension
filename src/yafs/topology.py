@@ -129,20 +129,19 @@ class Topology:
         # Correct way to use custom and mandatory topology attributes
 
         valuesIPT = {}
-        # valuesRAM = {}
+        valuesRAM = {}
         for node in data["entity"]:
             try:
                 valuesIPT[node["id"]] = node["IPT"]
             except KeyError:
                 valuesIPT[node["id"]] = 0
-            # try:
-            #     valuesRAM[node["id"]] = node["RAM"]
-            # except KeyError:
-            #     valuesRAM[node["id"]] = 0
-
+            try:
+                valuesRAM[node["id"]] = node["RAM"]
+            except KeyError:
+                valuesRAM[node["id"]] = 0
 
         nx.set_node_attributes(self.G,values=valuesIPT,name="IPT")
-        # nx.set_node_attributes(self.G,values=valuesRAM,name="RAM")
+        nx.set_node_attributes(self.G,values=valuesRAM,name="RAM")
 
         self.__init_uptimes()
 
