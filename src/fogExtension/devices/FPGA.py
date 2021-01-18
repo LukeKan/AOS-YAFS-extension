@@ -1,4 +1,4 @@
-from fogExtension.devices.GenericDevice import GenericDevice
+from fogExtension.devices.GenericHardware import GenericDevice
 
 
 class FPGA(GenericDevice):

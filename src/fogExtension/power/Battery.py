@@ -2,8 +2,8 @@ from fogExtension.power.PowerModel import PowerModel
 
 
 class Battery(PowerModel):
-    def __init__(self, en_throughput, size):
-        super(Battery, self).__init__(en_throughput)
+    def __init__(self, en_throughput, ppi, size):
+        super(Battery, self).__init__(en_throughput, ppi)
         self._battery_power = size
         self.charge = size
         return

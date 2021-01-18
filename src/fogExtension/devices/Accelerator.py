@@ -1,4 +1,4 @@
-from fogExtension.devices.GenericDevice import GenericDevice
+from fogExtension.devices.GenericHardware import GenericDevice
 
 
 class Accelerator(GenericDevice):
@@ -9,7 +9,7 @@ class Accelerator(GenericDevice):
         purpose (str) : acceleration purpose, this parameter can be customized in order to create a custom accelerator
         for a specific function
     """
-    def __init__(self, exec_units, freq, purpose, pm, ram=4000):
+    def __init__(self, freq, exec_units, purpose, pm, ram=4000):
 
         super().__init__(freq, pm, ram)
         self.exec_units = exec_units
@@ -24,4 +24,4 @@ class Accelerator(GenericDevice):
         return jsonString
 
     def _compute_ipt(self):
-        self.ipt = self.exec_units * self.freq
+        self.IPT = self.exec_units * self.freq

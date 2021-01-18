@@ -1,4 +1,4 @@
-from fogExtension.devices.GenericDevice import GenericDevice
+from fogExtension.devices.GenericHardware import GenericDevice
 
 
 class CPU(GenericDevice):
@@ -8,7 +8,7 @@ class CPU(GenericDevice):
         threads (int) : software parallelization level
 
     """
-    def __init__(self, cores, freq, threads, pm, ram=4000):
+    def __init__(self, freq, pm, ram=4000, cores=1,  threads=1,):
 
         super().__init__(freq, pm, ram)
         self.cores = cores
@@ -16,11 +16,11 @@ class CPU(GenericDevice):
         self._compute_ipt()
 
     def jsonify(self):
-        jsonString = super(CPU, self).jsonify()
-        jsonString["type"] = "CPU"
-        jsonString["cores"] = self.cores
-        jsonString["threads"] = self.threads
-        return jsonString
+        json_string = super(CPU, self).jsonify()
+        json_string["type"] = "CPU"
+        json_string["cores"] = self.cores
+        json_string["threads"] = self.threads
+        return json_string
 
     def _compute_ipt(self):
         self.IPT = self.freq * self.cores * self.threads

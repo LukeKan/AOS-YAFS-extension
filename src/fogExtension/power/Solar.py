@@ -2,8 +2,8 @@ from fogExtension.power.PowerModel import PowerModel
 
 
 class Solar(PowerModel):
-    def __init__(self, en_throughput, solar_power, battery, react_coeff):
-        super(Solar, self).__init__(en_throughput)
+    def __init__(self, en_throughput, ppi, solar_power, battery, react_coeff):
+        super(Solar, self).__init__(en_throughput, ppi)
         self._solar_power = solar_power
         self._battery_power = battery
         self._react_coeff = react_coeff

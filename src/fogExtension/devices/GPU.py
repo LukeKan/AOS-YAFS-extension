@@ -1,4 +1,4 @@
-from fogExtension.devices.GenericDevice import GenericDevice
+from fogExtension.devices.GenericHardware import GenericDevice
 
 
 class GPU(GenericDevice):
@@ -20,11 +20,13 @@ class GPU(GenericDevice):
         self._compute_ipt()
 
     def jsonify(self):
-        jsonString = super(GPU, self).jsonify()
-        jsonString["type"] = "GPU"
-        jsonString["cuda_cores"] = self.cuda_cores
-        jsonString["tmu"] = self.tmu
-        return jsonString
+        json_string = super(GPU, self).jsonify()
+        json_string["type"] = "GPU"
+        json_string["cuda_cores"] = self.cuda_cores
+        json_string["tmu"] = self.tmu
+        json_string["tensor_cores"] = self.tensor_cores
+        json_string["mem_freq"] = self.mem_freq
+        return json_string
 
     def _compute_ipt(self):
         texture_filler_rate = self.freq * self.tmu
