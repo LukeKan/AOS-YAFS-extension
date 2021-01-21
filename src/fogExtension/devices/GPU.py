@@ -32,3 +32,9 @@ class GPU(GenericDevice):
         texture_filler_rate = self.freq * self.tmu
         tensor_op_rate = self.tensor_cores * self.freq
         self.IPT = min(self.cuda_cores * texture_filler_rate, self.mem_freq, tensor_op_rate)  # finding the bottleneck
+
+    @staticmethod
+    def recompute_ipt(active_cuda_cores, active_tensor_cores, freq, tmu, mem_freq):
+        texture_filler_rate = freq * tmu
+        tensor_op_rate = active_tensor_cores * freq
+        return min(active_cuda_cores * texture_filler_rate, mem_freq, tensor_op_rate)

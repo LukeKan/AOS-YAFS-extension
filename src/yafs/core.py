@@ -407,6 +407,7 @@ class Sim:
             """
             It computes the service time in processing a message and record this event
             """
+            en_budget = 0
             if module in self.apps[app].get_sink_modules():
                 """
                 The module is a SINK (Actuactor)
@@ -427,10 +428,12 @@ class Sim:
                 if "PM" in att_node:
                     power_consumed = message.inst * att_node["PM"]["PPI"]
                     # TODO implement energy budget params
-                    if att_node["PM"]["type"] != "wired":
+                    if att_node["PM"]["type"] != "Wired":
                         att_node["PM"]["en_budget"] -= power_consumed
+                    en_budget = att_node["PM"]["en_budget"]
                 else:
                     power_consumed = 0
+
 
             """
             it records the entity.id who sends this message
@@ -488,7 +491,8 @@ class Sim:
                  "service": time_service, "time_in": self.env.now,
                  "time_out": time_service + self.env.now, "time_emit": float(message.timestamp),
                  "time_reception": float(message.timestamp_rec),
-                 "power_consumed": float(power_consumed)
+                 "power_consumed": float(power_consumed),
+                 "en_budget": en_budget
 
                  })
             return time_service

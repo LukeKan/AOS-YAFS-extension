@@ -24,3 +24,7 @@ class CPU(GenericDevice):
 
     def _compute_ipt(self):
         self.IPT = self.freq * self.cores * self.threads
+
+    @staticmethod
+    def recompute_ipt(active_cores, active_threads, freq):
+        return freq * active_cores * active_threads

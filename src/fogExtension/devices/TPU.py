@@ -11,20 +11,21 @@ class TPU(GenericDevice):
         accumulators (int) : units for accumulating convolution results and aggregating matrix multiplication results
 
     """
-    def __init__(self, freq, mmu, accumulators, pm, ram=4000):
+    def __init__(self, freq, tensor_cores, pm, ram=4000):
 
         super().__init__(freq, pm, ram)
-        self.mmu = mmu
-        self.accumulators = accumulators
+        self.tensor_cores = tensor_cores
         self._compute_ipt()
 
     def jsonify(self):
-        jsonString = super(TPU, self).jsonify()
-        jsonString["type"] = "TPU"
-        jsonString["MMU"] = self.mmu
-        jsonString["accumulators"] = self.accumulators
-        return jsonString
+        json_string = super(TPU, self).jsonify()
+        json_string["type"] = "TPU"
+        json_string["tensor_cores"] = self.tensor_cores
+        return json_string
 
     def _compute_ipt(self):
-        self.IPT = self.freq
-        # TODO
+        self.IPT = self.freq * self.tensor_cores
+
+    @staticmethod
+    def recompute_ipt(active_tensor_cores, freq):
+        return active_tensor_cores * freq

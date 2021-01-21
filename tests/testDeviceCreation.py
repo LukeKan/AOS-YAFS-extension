@@ -14,7 +14,7 @@ wired_model = Wired(1.0, 7)
 cpu_batt = CPU(5.2, battery_model)
 gpu_wired = GPU(30.8, 40, 20, 40.5, 8, wired_model)
 fpga_solar = FPGA(140.3, 200, 12, solar_model)
-tpu_wired = TPU(202.3, 7, 5, wired_model)
+tpu_wired = TPU(202.3, 12, wired_model)
 acc_solar = Accelerator(167.7, 4, 'crypto', solar_model)
 
 print("CPU TEST :" + str(cpu_batt.jsonify()))

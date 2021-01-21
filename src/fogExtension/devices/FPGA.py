@@ -16,11 +16,11 @@ class FPGA(GenericDevice):
         self._compute_ipt()
 
     def jsonify(self):
-        jsonString = super(FPGA, self).jsonify()
-        jsonString["type"] = "FPGA"
-        jsonString["lut"] = self.lut
-        jsonString["ff"] = self.ff
-        return jsonString
+        json_string = super(FPGA, self).jsonify()
+        json_string["type"] = "FPGA"
+        json_string["lut"] = self.lut
+        json_string["ff"] = self.ff
+        return json_string
 
     def _compute_ipt(self):
         self.IPT = self.freq

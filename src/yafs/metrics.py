@@ -14,7 +14,7 @@ class Metrics:
 
     def __init__(self, default_results_path=None):
         columns_event = ["id","type", "app", "module", "message","DES.src","DES.dst","TOPO.src","TOPO.dst","module.src","service", "time_in","time_out",
-                         "time_emit","time_reception", "power_consumed"]
+                         "time_emit","time_reception", "power_consumed", "en_budget"]
         columns_link = ["id","type", "src", "dst", "app", "latency", "message", "ctime", "size","buffer"]
 
         path = "result"
@@ -48,7 +48,8 @@ class Metrics:
                     value["time_out"],
                     value["time_emit"],
                     value["time_reception"],
-                    value["power_consumed"]
+                    value["power_consumed"],
+                    value["en_budget"]
                             ])
 
     def insert_link(self, value):

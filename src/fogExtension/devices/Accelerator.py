@@ -17,11 +17,11 @@ class Accelerator(GenericDevice):
         self._compute_ipt()
 
     def jsonify(self):
-        jsonString = super(Accelerator, self).jsonify()
-        jsonString["type"] = "Accelerator"
-        jsonString["exec_units"] = self.exec_units
-        jsonString["purpose"] = self.purpose
-        return jsonString
+        json_string = super(Accelerator, self).jsonify()
+        json_string["type"] = "Accelerator"
+        json_string["exec_units"] = self.exec_units
+        json_string["purpose"] = self.purpose
+        return json_string
 
     def _compute_ipt(self):
         self.IPT = self.exec_units * self.freq
