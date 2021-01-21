@@ -5,6 +5,8 @@ import logging
 import networkx as nx
 import warnings
 
+from fogExtension.power.Wired import Wired
+
 
 class Topology:
     """
@@ -130,6 +132,7 @@ class Topology:
 
         valuesIPT = {}
         valuesRAM = {}
+        valuesPM ={}
         for node in data["entity"]:
             try:
                 valuesIPT[node["id"]] = node["IPT"]
@@ -139,9 +142,14 @@ class Topology:
                 valuesRAM[node["id"]] = node["RAM"]
             except KeyError:
                 valuesRAM[node["id"]] = 0
+            try:
+                valuesPM[node['id']] = node["pm"]
+            except KeyError:
+                valuesPM[node['id']] = Wired(1, 1)
 
-        nx.set_node_attributes(self.G,values=valuesIPT,name="IPT")
-        nx.set_node_attributes(self.G,values=valuesRAM,name="RAM")
+        nx.set_node_attributes(self.G, values=valuesIPT, name="IPT")
+        nx.set_node_attributes(self.G, values=valuesRAM, name="RAM")
+        nx.set_node_attributes(self.G, values=valuesPM, name="PM")
 
         self.__init_uptimes()
 

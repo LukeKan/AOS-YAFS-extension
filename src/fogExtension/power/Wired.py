@@ -15,4 +15,5 @@ class Wired(PowerModel):
     def jsonify(self):
         json_string = super(Wired, self).jsonify()
         json_string["type"] = "Wired"
+        json_string["en_budget"] = 0
         return json_string

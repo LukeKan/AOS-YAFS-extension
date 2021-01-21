@@ -18,4 +18,5 @@ class Battery(PowerModel):
         json_string = super(Battery, self).jsonify()
         json_string["type"] = "Battery"
         json_string["battery_power"] = self._battery_power
+        json_string["en_budget"] = self._battery_power
         return json_string

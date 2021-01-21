@@ -12,6 +12,7 @@ import logging.config
 import networkx as nx
 from pathlib import Path
 
+from fogExtension.power.Wired import Wired
 from yafs.core import Sim
 from yafs.application import create_applications_from_json
 from yafs.topology import Topology
@@ -45,6 +46,10 @@ def main(stop_time, it):
     # IPT
     attIPT = {x: 100 for x in t.G.nodes()}
     nx.set_node_attributes(t.G, name="IPT", values=attIPT)
+    # PM
+    wired_model = Wired(1, 10).jsonify()
+    attPM = {x: wired_model for x in t.G.nodes()}
+    nx.set_node_attributes(t.G, name="PM", values=attPM)
 
     nx.write_gexf(t.G,folder_results+"graph_binomial_tree_%i"%size) # you can export the Graph in multiples format to view in tools like Gephi, and so on.
 
@@ -107,7 +112,7 @@ if __name__ == '__main__':
 
     logging.config.fileConfig(os.getcwd() + '/logging.ini')
 
-    nIterations = 1  # iteration for each experiment
+    nIterations = 5  # iteration for each experiment
     simulationDuration = 20000
 
     # Iteration for each experiment changing the seed of randoms
