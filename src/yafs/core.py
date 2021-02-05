@@ -430,6 +430,8 @@ class Sim:
                     # TODO implement energy budget params
                     if att_node["PM"]["type"] != "Wired":
                         att_node["PM"]["en_budget"] -= power_consumed
+                        if att_node["PM"]["en_budget"] == 0:
+                            att_node["IPT"] = 0
                     en_budget = att_node["PM"]["en_budget"]
                 else:
                     power_consumed = 0

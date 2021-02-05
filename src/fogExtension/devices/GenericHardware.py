@@ -24,7 +24,8 @@ class GenericDevice:
         """
         return {"IPT": self.IPT,
                 "RAM": self.ram,
-                "PM": self.pm.jsonify()
+                "PM": self.pm.jsonify(),
+                "freq": self.freq
                 }
 
     def _compute_ipt(self):

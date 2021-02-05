@@ -7,7 +7,7 @@ class GPU(GenericDevice):
 
 
     """
-    def __init__(self, freq, cuda, tmu,  mem_freq, tensor_cores, pm, ram=4000):
+    def __init__(self, freq, pm, cuda, mem_freq, tmu=1, tensor_cores=1, ram=4000):
         """
 
         Args:

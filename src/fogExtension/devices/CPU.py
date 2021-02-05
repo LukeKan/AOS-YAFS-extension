@@ -26,7 +26,8 @@ class CPU(GenericDevice):
         """
         json_string = super(CPU, self).jsonify()
         json_string["type"] = "CPU"
-        json_string["cores"] = self.cores
+        json_string["c_tot"] = self.cores
+        json_string["c_available"] = self.cores
         json_string["threads"] = self.threads
         return json_string
 
