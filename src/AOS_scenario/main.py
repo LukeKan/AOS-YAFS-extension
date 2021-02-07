@@ -107,19 +107,20 @@ def create_application():
     # APPLICATION
     a = Application(name="SmartSurveillance")
 
-    a.set_modules([
-        {"MOTION_KERNEL": {"Type": "Application.TYPE_SOURCE"}}, #"video": 1, "screen": 0, "s": 1, "n": 0, "data_in": 0, "data_out": 519252}},
-        {"CLASSIFIER_KERNEL": {"RAM": 10, "Type": "Application.TYPE_MODULE"}},# "video": 0, "screen": 0, "s": 1, "n": 1, "data_in": 519368, "data_out": 44}},
-        {"TRACKER_KERNEL": {"RAM": 10, "Type": "Application.TYPE_MODULE"}},# "video": 0, "screen": 0, "s": 0, "n": 0, "data_in": 519252, "data_out": 1038700}},
-        {"GUI_KERNEL": {"Type": "Application.TYPE_SINK"}}#, "video": 0, "screen": 1, "s": 0, "n": 0, "data_in": 519376, "data_out": 0}}
-    ])
+    modules = [
+        {"MOTION_KERNEL": {"RAM": 10,"Type": "SOURCE"}}, #"video": 1, "screen": 0, "s": 1, "n": 0, "data_in": 0, "data_out": 519252}},
+        {"CLASSIFIER_KERNEL": {"RAM": 10, "Type": "MODULE"}},# "video": 0, "screen": 0, "s": 1, "n": 1, "data_in": 519368, "data_out": 44}},
+        {"TRACKER_KERNEL": {"RAM": 10, "Type": "MODULE"}},#, "video": 0, "screen": 0, "s": 0, "n": 0, "data_in": 519252, "data_out": 1038700}},
+        {"GUI_KERNEL": {"Type": "SINK"}}#, "video": 0, "screen": 1, "s": 0, "n": 0, "data_in": 519376, "data_out": 0}}
+    ]
+    a.set_modules(modules)
     """
     Messages among MODULES (AppEdge in iFogSim)
     """
-    m_mot_track = Message("M.M_T", "MOTION_KERNEL", "TRACKER_KERNEL", instructions=20*10 ^ 6, bytes=1000)
-    m_track_class = Message("M.T_C", "TRACKER_KERNEL", "CLASSIFIER_KERNEL", instructions=30*10 ^ 6, bytes=500)
-    m_track_gui = Message("M.T_G", "TRACKER_KERNEL", "GUI_KERNEL", instructions=20 * 10 ^ 6, bytes=1000)
-    m_class_gui = Message("M.C_G", "CLASSIFIER_KERNEL", "GUI_KERNEL", instructions=30 * 10 ^ 6, bytes=500)
+    m_mot_track = Message("M.M_T", "MOTION_KERNEL", "TRACKER_KERNEL", instructions=200*10 ^ 8, bytes=100000)
+    m_track_class = Message("M.T_C", "TRACKER_KERNEL", "CLASSIFIER_KERNEL", instructions=300*10 ^ 8, bytes=50000)
+    m_track_gui = Message("M.T_G", "TRACKER_KERNEL", "GUI_KERNEL", instructions=200 * 10 ^ 8, bytes=100000)
+    m_class_gui = Message("M.C_G", "CLASSIFIER_KERNEL", "GUI_KERNEL", instructions=300 * 10 ^ 8, bytes=50000)
 
     """
     Defining which messages will be dynamically generated # the generation is controlled by Population algorithm
@@ -130,14 +131,18 @@ def create_application():
     MODULES/SERVICES: Definition of Generators and Consumers (AppEdges and TupleMappings in iFogSim)
     """
     # MODULE SERVICES
-    a.add_service_module(module_name="TRACKER_KERNEL", message_in=m_mot_track, message_out=m_track_class, distribution=fractional_selectivity(1.0),
-                         params={"video": 0, "screen": 0, "s": 1, "n": 1, "data_in": 519368, "data_out": 44})
-    a.add_service_module(module_name="TRACKER_KERNEL", message_in=m_mot_track, message_out=m_track_gui, distribution=fractional_selectivity(1.0), threshold=1.0,
-                         params={"video": 0, "screen": 0, "s": 1, "n": 1, "data_in": 519368, "data_out": 44})
-    a.add_service_module(module_name="CLASSIFIER_KERNEL", message_in=m_track_class, message_out=m_class_gui, distribution=fractional_selectivity(1.0), threshold=1.0,
-                         params={"video": 0, "screen": 0, "s": 0, "n": 0, "data_in": 519252, "data_out": 1038700})
-    a.add_service_module(module_name="GUI_KERNEL", message_in=m_class_gui, distribution=fractional_selectivity(1.0), threshold=1.0,
-                         params={"video": 0, "screen": 1, "s": 0, "n": 0, "data_in": 519376, "data_out": 0})
+    dDistribution = deterministic_distribution(name="Deterministic", time=100)
+    a.add_service_module(module_name="TRACKER_KERNEL", message_in=m_mot_track, message_out=m_track_class, distribution=fractional_selectivity, threshold=1.0
+                         )
+    a.add_service_module(module_name="TRACKER_KERNEL", message_in=m_mot_track, message_out=m_track_gui, distribution=fractional_selectivity, threshold=1.0
+                         )
+    a.add_service_module(module_name="CLASSIFIER_KERNEL", message_in=m_track_class, message_out=m_class_gui, distribution=fractional_selectivity, threshold=1.0
+                         )
+    a.add_service_module(module_name="GUI_KERNEL", message_in=m_class_gui, distribution=fractional_selectivity, threshold=1.0
+                         )
+
+    a.add_service_source(module_name="MOTION_KERNEL", distribution=dDistribution, message=m_mot_track, module_dest=["TRACKER_KERNEL"]) #module_name="MOTION_KERNEL", distribution=fractional_selectivity(1.0), message=m_mot_track, module_dest=["TRACKER_KERNEL"],
+
 
     return a
 
@@ -210,12 +215,12 @@ def main(stop_time, it):
     #     model (str): identifies the device or devices where the sink is linked
     #     number (int): quantity of sinks linked in each device
     #     module (str): identifies the module from the app who receives the messages
-    pop.set_sink_control({"model": "actuator-device", "number": 1, "module": apps[0].get_sink_modules()})
+    pop.set_sink_control({"model": "a", "number": 1, "module": apps[0].get_sink_modules()})
 
     # In addition, a source includes a distribution function:
-    # dDistribution = deterministic_distribution(name="Deterministic", time=100)
-    # pop.set_src_control(
-    #    {"model": "sensor-device", "number": 1, "message": app.get_message("M.A"), "distribution": dDistribution})
+    dDistribution = deterministic_distribution(name="Deterministic", time=100)
+    pop.set_src_control(
+       {"model": "sensor-s", "number": 1, "message": apps[0].get_message("M.M_T"), "distribution": dDistribution})
 
 
     """
@@ -234,20 +239,21 @@ def main(stop_time, it):
     """
     for a in apps:
         s.deploy_app(a, placement, selectorPath)  # Note: each app can have a different routing algorithm
-
+        s.deploy_source("SmartSurveillance", placement.lavanet_allocation_source(s, "MOTION_KERNEL"), a.get_message("M.M_T"), dDistribution)
     """
     RUNNING - last step
     """
     logging.info(" Performing simulation: %i " % it)
     s.run(stop_time)  # To test deployments put test_initial_deploy a TRUE
-    s.print_debug_assignaments()
+
+
 
 if __name__ == '__main__':
 
     logging.config.fileConfig(os.getcwd() + '/logging.ini')
 
-    nIterations = 1  # iteration for each experiment
-    simulationDuration = 20000
+    nIterations = 5  # iteration for each experiment
+    simulationDuration = 100000
 
     # Iteration for each experiment changing the seed of randoms
     for iteration in range(nIterations):

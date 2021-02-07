@@ -13,7 +13,7 @@ class LAVANET(Placement):
     """
     def __init__(self, name):
 
-        super().__init__(name)
+        super(LAVANET, self).__init__(name)
 
         # self._load_lat is the e matrix
         self._load_lat = {
@@ -208,6 +208,13 @@ class LAVANET(Placement):
                 }
         }
 
+        self._task_param = {
+            "MOTION_KERNEL": {"video": 1, "screen": 0, "s": 1, "n": 0, "data_in": 0, "data_out": 519252},
+            "CLASSIFIER_KERNEL": {"video": 0, "screen": 0, "s": 1, "n": 1, "data_in": 519368, "data_out": 44},
+            "TRACKER_KERNEL": {"video": 0, "screen": 0, "s": 0, "n": 0, "data_in": 519252, "data_out": 1038700},
+            "GUI_KERNEL": {"video": 0, "screen": 1, "s": 0, "n": 0, "data_in": 519376, "data_out": 0}
+        }
+
     def _compute_load(self, device):
         load = (1.0 - device["c_available"] / device["c_tot"]) * 100.0
         if load == 0:
@@ -256,23 +263,43 @@ class LAVANET(Placement):
         assignments = []
         for task_name, m in services.items():
             min_d_cost = -1
-            for mod in m:
-                module = mod["param"]["params"]
-                for dev in sim.topology.G.nodes():
-                    d = sim.topology.G.nodes[dev]
-                    r_cost = 0
-                    if self._compatibility_check(d, module, task_name):
-                        r_cost = self._compute_latency(module, task_name, d, assignments)
-                        if min_d_cost <= 0 or r_cost < min_d_cost:
-                            min_d_cost = r_cost
+            module = self._task_param[task_name]
+            for dev in sim.topology.G.nodes():
+                d = sim.topology.G.nodes[dev]
+                d["id"] = dev
+                r_cost = 0
+                if self._compatibility_check(d, module, task_name):
+                    r_cost = self._compute_latency(module, task_name, d, assignments)
+                    if min_d_cost <= 0 or r_cost < min_d_cost:
+                        min_d_cost = r_cost
 
-                            # adding/updating the scheduled activity
-                            if len(assignments) == 0 or assignments[len(assignments)-1]["task"] != module:
-                                assignments.append({"task": mod, "device": d})
-                            else:
-                                assignments[len(assignments)-1]["device"] = d
-                if min_d_cost == -1:
-                    Exception("Cannot allocate the module "+module["name"]+" on this network.")
-                curr_device = assignments[len(assignments) - 1]["device"]
-                self._allocate_cores(device=curr_device, task_name=task_name)
-                idDES = sim.deploy_module(app_name, task_name, services[task_name], curr_device)
+                        # adding/updating the scheduled activity
+                        if len(assignments) == 0 or assignments[len(assignments)-1]["task"] != module:
+                            assignments.append({"task": module, "device": d})
+                        else:
+                            assignments[len(assignments)-1]["device"] = d
+            if min_d_cost == -1:
+                Exception("Cannot allocate the module "+task_name+" on this network.")
+            curr_device = assignments[len(assignments) - 1]["device"]
+            self._allocate_cores(device=curr_device, task_name=task_name)
+            idDES = sim.deploy_module(app_name, task_name, services[task_name], [curr_device["id"]])
+
+    def lavanet_allocation_source(self, sim, task_name):
+        min_d_cost = -1
+        module = self._task_param[task_name]
+        device = ""
+        assignments = []
+        for dev in sim.topology.G.nodes():
+            d = sim.topology.G.nodes[dev]
+            d["id"] = dev
+            r_cost = 0
+            if self._compatibility_check(d, module, task_name):
+                r_cost = self._compute_latency(module, task_name, d, assignments)
+                if min_d_cost <= 0 or r_cost < min_d_cost:
+                    min_d_cost = r_cost
+
+                    device = d
+        if min_d_cost == -1:
+            Exception("Cannot allocate the module " + task_name + " on this network.")
+        self._allocate_cores(device=device, task_name=task_name)
+        return device["id"]

@@ -199,7 +199,7 @@ class Application:
     ADD SERVICE
     """
 
-    def add_service_source(self, module_name, distribution=None, message=None, module_dest=[], p=[]):
+    def add_service_source(self, module_name, distribution=None, message=None, module_dest=[], p=[], **param):
         """
         Link to each non-pure module a management for creating messages
 
@@ -222,7 +222,7 @@ class Application:
             if module_name not in self.services:
                 self.services[module_name] = []
             self.services[module_name].append(
-                {"type": Application.TYPE_SOURCE, "dist": distribution,
+                {"type": Application.TYPE_SOURCE, "dist": distribution, "param": param,
                  "message_out": message, "module_dest": module_dest, "p": p})
 
     def add_service_module(self, module_name, message_in, message_out="", distribution="", module_dest=[], p=[],
