@@ -7,14 +7,14 @@ from yafs.placement import Placement
 class LAVANET(Placement):
     """
         This implementation locates the services accordingly to the LAVANET algorithm descibed in the work of dott. ---.
-
+        A set of metrics has been included in protected field for computation purposes.
         It only runs once, in the initialization.
 
     """
     def __init__(self, name):
 
         super(LAVANET, self).__init__(name)
-
+        self.assignments = []
         # self._load_lat is the e matrix
         self._load_lat = {
         "FREESCALE":
@@ -203,8 +203,8 @@ class LAVANET(Placement):
                 {
                     "MOTION_KERNEL": 150,
                     "CLASSIFIER_KERNEL": 50,
-                    "TRACKER_KERNEL": 1000,
-                    "GUI_KERNEL": 1000
+                    "TRACKER_KERNEL": 10000,
+                    "GUI_KERNEL": 10000
                 }
         }
 
@@ -229,7 +229,7 @@ class LAVANET(Placement):
             return 75
         return 100
 
-    def _compute_latency(self, task, task_name, device, assignments):
+    def _compute_latency(self, task, task_name, device):
 
         load = str(self._compute_load(device))
         latency = self._load_lat[device["name"]][task_name][load] * (1-task["n"] * self._beta[device["type"]])
@@ -237,7 +237,7 @@ class LAVANET(Placement):
         # LAVA implementation ends here, the next part is the net extension
         if device["wireless"] == 1:
             count = 0
-            for a in assignments:
+            for a in self.assignments:
                 if a["device"] == device:
                     count += 1
             wireless_value = task["data_in"] / device["BW_down"] + task["data_out"] / device["BW_up"]
@@ -246,7 +246,7 @@ class LAVANET(Placement):
 
     def _compatibility_check(self, device, task, task_name):
         if device["c_available"] * 100 >= self._creq[device["name"]][task_name]:
-            if device["video"] >= task["video"] and device["screen"] >= task["screen"]:# and device["s"] >= task["s"]:
+            if device["video"] >= task["video"] and device["screen"] >= task["screen"]:
                 return True
         return False
 
@@ -260,7 +260,7 @@ class LAVANET(Placement):
         app = sim.apps[app_name]
 
         services = app.services
-        assignments = []
+
         for task_name, m in services.items():
             min_d_cost = -1
             module = self._task_param[task_name]
@@ -269,18 +269,18 @@ class LAVANET(Placement):
                 d["id"] = dev
                 r_cost = 0
                 if self._compatibility_check(d, module, task_name):
-                    r_cost = self._compute_latency(module, task_name, d, assignments)
+                    r_cost = self._compute_latency(module, task_name, d)
                     if min_d_cost <= 0 or r_cost < min_d_cost:
                         min_d_cost = r_cost
 
                         # adding/updating the scheduled activity
-                        if len(assignments) == 0 or assignments[len(assignments)-1]["task"] != module:
-                            assignments.append({"task": module, "device": d})
+                        if len(self.assignments) == 0 or self.assignments[len(self.assignments)-1]["task"] != module:
+                            self.assignments.append({"task": module, "device": d})
                         else:
-                            assignments[len(assignments)-1]["device"] = d
+                            self.assignments[len(self.assignments)-1]["device"] = d
             if min_d_cost == -1:
                 Exception("Cannot allocate the module "+task_name+" on this network.")
-            curr_device = assignments[len(assignments) - 1]["device"]
+            curr_device = self.assignments[len(self.assignments) - 1]["device"]
             self._allocate_cores(device=curr_device, task_name=task_name)
             idDES = sim.deploy_module(app_name, task_name, services[task_name], [curr_device["id"]])
 
@@ -288,16 +288,19 @@ class LAVANET(Placement):
         min_d_cost = -1
         module = self._task_param[task_name]
         device = ""
-        assignments = []
         for dev in sim.topology.G.nodes():
             d = sim.topology.G.nodes[dev]
             d["id"] = dev
             r_cost = 0
             if self._compatibility_check(d, module, task_name):
-                r_cost = self._compute_latency(module, task_name, d, assignments)
+                r_cost = self._compute_latency(module, task_name, d)
                 if min_d_cost <= 0 or r_cost < min_d_cost:
                     min_d_cost = r_cost
-
+                    # adding/updating the scheduled activity
+                    if len(self.assignments) == 0 or self.assignments[len(self.assignments) - 1]["task"] != module:
+                        self.assignments.append({"task": module, "device": d})
+                    else:
+                        self.assignments[len(self.assignments) - 1]["device"] = d
                     device = d
         if min_d_cost == -1:
             Exception("Cannot allocate the module " + task_name + " on this network.")

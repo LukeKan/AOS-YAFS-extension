@@ -32,7 +32,8 @@ class GPU(GenericDevice):
         """
         json_string = super(GPU, self).jsonify()
         json_string["type"] = "GPU"
-        json_string["cuda_cores"] = self.cuda_cores
+        json_string["c_tot"] = self.cuda_cores
+        json_string["c_available"] = self.cuda_cores
         json_string["tmu"] = self.tmu
         json_string["tensor_cores"] = self.tensor_cores
         json_string["mem_freq"] = self.mem_freq

@@ -41,7 +41,8 @@ class CPU(GenericDevice):
     def recompute_ipt(active_cores, active_threads, freq):
         """
         Static function used at simulation runtime in order to recompute the IPT parameter when changing the cores,
-        threads and the device frequency.
+        threads and the device frequency. The max has been added in order to guarantee a minimum level of computational
+        power even in absence of available core: the computation is slow but not off.
 
         Args:
             active_cores (int): hardware parallelization level,
@@ -52,4 +53,4 @@ class CPU(GenericDevice):
             the recomputed IPT
 
         """
-        return freq * active_cores * active_threads
+        return max(freq * active_cores * active_threads, freq * 0.5)
