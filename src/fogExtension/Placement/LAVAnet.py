@@ -236,7 +236,7 @@ class LAVANET(Placement):
 
         # LAVA implementation ends here, the next part is the net extension
         if device["wireless"] == 1:
-            count = 0
+            count = 1
             for a in self.assignments:
                 if a["device"] == device:
                     count += 1
@@ -256,38 +256,9 @@ class LAVANET(Placement):
         if device["type"] == "CPU":
             device["IPT"] = CPU.recompute_ipt(active_cores=device["c_available"], active_threads=device["threads"], freq=device["freq"])
 
-    def initial_allocation(self, sim, app_name):
-        app = sim.apps[app_name]
-
-        services = app.services
-
-        for task_name, m in services.items():
-            min_d_cost = -1
-            module = self._task_param[task_name]
-            for dev in sim.topology.G.nodes():
-                d = sim.topology.G.nodes[dev]
-                d["id"] = dev
-                r_cost = 0
-                if self._compatibility_check(d, module, task_name):
-                    r_cost = self._compute_latency(module, task_name, d)
-                    if min_d_cost <= 0 or r_cost < min_d_cost:
-                        min_d_cost = r_cost
-
-                        # adding/updating the scheduled activity
-                        if len(self.assignments) == 0 or self.assignments[len(self.assignments)-1]["task"] != module:
-                            self.assignments.append({"task": module, "device": d})
-                        else:
-                            self.assignments[len(self.assignments)-1]["device"] = d
-            if min_d_cost == -1:
-                Exception("Cannot allocate the module "+task_name+" on this network.")
-            curr_device = self.assignments[len(self.assignments) - 1]["device"]
-            self._allocate_cores(device=curr_device, task_name=task_name)
-            idDES = sim.deploy_module(app_name, task_name, services[task_name], [curr_device["id"]])
-
-    def lavanet_allocation_source(self, sim, task_name):
-        min_d_cost = -1
+    def _find_best_device_on_taskname(self, sim, task_name):
         module = self._task_param[task_name]
-        device = ""
+        min_d_cost = -1
         for dev in sim.topology.G.nodes():
             d = sim.topology.G.nodes[dev]
             d["id"] = dev
@@ -296,13 +267,28 @@ class LAVANET(Placement):
                 r_cost = self._compute_latency(module, task_name, d)
                 if min_d_cost <= 0 or r_cost < min_d_cost:
                     min_d_cost = r_cost
+
                     # adding/updating the scheduled activity
                     if len(self.assignments) == 0 or self.assignments[len(self.assignments) - 1]["task"] != module:
                         self.assignments.append({"task": module, "device": d})
                     else:
                         self.assignments[len(self.assignments) - 1]["device"] = d
-                    device = d
         if min_d_cost == -1:
             Exception("Cannot allocate the module " + task_name + " on this network.")
+
+    def initial_allocation(self, sim, app_name):
+        app = sim.apps[app_name]
+
+        services = app.services
+
+        for task_name, m in services.items():
+            self._find_best_device_on_taskname(sim=sim, task_name=task_name)
+            curr_device = self.assignments[len(self.assignments) - 1]["device"]
+            self._allocate_cores(device=curr_device, task_name=task_name)
+            idDES = sim.deploy_module(app_name, task_name, m, [curr_device["id"]])
+
+    def source_allocation(self, sim, task_name):
+        self._find_best_device_on_taskname(sim=sim, task_name=task_name)
+        device = self.assignments[len(self.assignments) - 1]["device"]
         self._allocate_cores(device=device, task_name=task_name)
         return device["id"]
