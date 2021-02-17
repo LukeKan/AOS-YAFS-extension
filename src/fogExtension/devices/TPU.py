@@ -24,7 +24,8 @@ class TPU(GenericDevice):
         """
         json_string = super(TPU, self).jsonify()
         json_string["type"] = "TPU"
-        json_string["tensor_cores"] = self.tensor_cores
+        json_string["c_tot"] = self.tensor_cores
+        json_string["c_available"] = self.tensor_cores
         return json_string
 
     def _compute_ipt(self):
