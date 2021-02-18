@@ -4,6 +4,7 @@
 
     @author: Luca Loria
 """
+import json
 import os
 import time
 import random
@@ -102,7 +103,8 @@ def main(stop_time, it):
     """
    PLACEMENT algorithm
    """
-    placement = LAVANET(name="LAVANET")  # it defines the deployed rules: module-device
+    params = json.load(open('data/params.json'))
+    placement = LAVANET(name="LAVANET", app_params=params)  # it defines the deployed rules: module-device
     placement.scaleService({"TRACKER_KERNEL": 1, "CLASSIFIER_KERNEL": 1})
 
     """

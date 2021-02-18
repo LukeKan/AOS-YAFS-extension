@@ -6,216 +6,27 @@ from yafs.placement import Placement
 
 class LAVANET(Placement):
     """
-        This implementation locates the services accordingly to the LAVANET algorithm descibed in the work of dott. ---.
+        This implementation locates the services accordingly to the LAVANET algorithm descibed in the work of dott. Filippo Sciamanna.
         A set of metrics has been included in protected field for computation purposes.
-        It only runs once, in the initialization.
-
+        Args:
+            name: name of the application to be simulated
+            app_params: dictionary containing the custom parameters of the application modules
     """
-    def __init__(self, name):
+    def __init__(self, name, app_params):
 
         super(LAVANET, self).__init__(name)
         self.assignments = []
-        # self._load_lat is the e matrix
-        self._load_lat = {
-        "FREESCALE":
-            {
-                "MOTION_KERNEL":
-                    {
-                         "0": 210.18,
-                         "10": 222.96,
-                         "25": 242.29,
-                         "50": 347.76,
-                         "75": 678.24,
-                         "100": 846.09
-                    },
-                "CLASSIFIER_KERNEL":
-                     {
-                         "0": 38881.97,
-                         "10": 44136.19,
-                         "25": 54469.3,
-                         "50": 79937.4,
-                         "75": 166112,
-                         "100": 184479
-                     },
-                "TRACKER_KERNEL":
-                    {
-                        "0": 0.47,
-                        "10": 0.47,
-                        "25": 0.47,
-                        "50": 0.49,
-                        "75": 0.51,
-                        "100": 0.91
-                    },
-                "GUI_KERNEL":
-                    {
-                        "0": 24.05,
-                        "10": 24.47,
-                        "25": 25.23,
-                        "50": 27.12,
-                        "75": 36.66,
-                        "100": 50.31
-                    }
-            },
-        "ODROID":
-            {
-                "MOTION_KERNEL":
-                    {
-                        "0": 54.04,
-                        "10": 54.66,
-                        "25": 56.33,
-                        "50": 62.90,
-                        "75": 88.80,
-                        "100": 189.781
-                    },
-                "CLASSIFIER_KERNEL":
-                    {
-                        "0": 2022.62,
-                        "10": 2292.45,
-                        "25": 3034.47,
-                        "50": 3984.49,
-                        "75": 7764.74,
-                        "100": 9687.35
-                    },
-                "TRACKER_KERNEL":
-                    {
-                        "0": 0.13,
-                        "10": 0.1229,
-                        "25": 0.1,
-                        "50": 0.1,
-                        "75": 0.1,
-                        "100": 0.17
-                    },
-                "GUI_KERNEL":
-                    {
-                        "0": 5.19,
-                        "10": 5.14,
-                        "25": 4.96,
-                        "50": 6.2604,
-                        "75": 15.09,
-                        "100": 23.74
-                    }
-            },
-        "JETSON_CPU":
-            {
-                "MOTION_KERNEL":
-                    {
-                        "0": 19.18,
-                        "10": 22.5,
-                        "25": 30.61,
-                        "50": 36.54,
-                        "75": 41.2,
-                        "100": 42.141
-                    },
-                "CLASSIFIER_KERNEL":
-                    {
-                        "0": 2932.62,
-                        "10": 3310.68,
-                        "25": 4130.79,
-                        "50": 5001.77,
-                        "75": 5933.91,
-                        "100": 5770.17
-                    },
-                "TRACKER_KERNEL":
-                    {
-                        "0": 0.14,
-                        "10": 0.14,
-                        "25": 0.14,
-                        "50": 0.14,
-                        "75": 0.14,
-                        "100": 0.16
-                    },
-                "GUI_KERNEL":
-                    {
-                        "0": 6.75,
-                        "10": 6.78,
-                        "25": 6.85,
-                        "50": 7.23,
-                        "75": 7.79,
-                        "100": 16.08
-                    }
-            },
-        "JETSON_GPU":
-            {
-                "MOTION_KERNEL":
-                    {
-                        "0": 10.01,
-                        "10": 10.7,
-                        "25": 10.8,
-                        "50": 12.4,
-                        "75": 17.8,
-                        "100": 23
-                    },
-                "CLASSIFIER_KERNEL":
-                    {
-                        "0": 287,
-                        "10": 215.22,
-                        "25": 208,
-                        "50": 208,
-                        "75": 210,
-                        "100": 226.8
-                    },
-                "TRACKER_KERNEL":
-                    {
-                        "0": 0.14,
-                        "10": 0.14,
-                        "25": 0.14,
-                        "50": 0.14,
-                        "75": 0.14,
-                        "100": 0.16
-                    },
-                "GUI_KERNEL":
-                    {
-                        "0": 6.75,
-                        "10": 6.78,
-                        "25": 6.85,
-                        "50": 7.23,
-                        "75": 7.79,
-                        "100": 16.08
-                    }
-            }
-        }
-
-        self._beta = {"CPU": 0.9, "GPU": 0.65}
-
-        self._creq = {
-            "FREESCALE":
-                {
-                    "MOTION_KERNEL": 250,
-                    "CLASSIFIER_KERNEL": 250,
-                    "TRACKER_KERNEL": 50,
-                    "GUI_KERNEL": 150
-                },
-            "ODROID":
-                {
-                    "MOTION_KERNEL": 150,
-                    "CLASSIFIER_KERNEL": 350,
-                    "TRACKER_KERNEL": 50,
-                    "GUI_KERNEL": 150
-                },
-            "JETSON_CPU":
-                {
-                    "MOTION_KERNEL": 350,
-                    "CLASSIFIER_KERNEL": 250,
-                    "TRACKER_KERNEL": 50,
-                    "GUI_KERNEL": 150
-                },
-            "JETSON_GPU":
-                {
-                    "MOTION_KERNEL": 150,
-                    "CLASSIFIER_KERNEL": 50,
-                    "TRACKER_KERNEL": 10000,
-                    "GUI_KERNEL": 10000
-                }
-        }
-
-        self._task_param = {
-            "MOTION_KERNEL": {"video": 1, "screen": 0, "s": 1, "n": 0, "data_in": 0, "data_out": 519252},
-            "CLASSIFIER_KERNEL": {"video": 0, "screen": 0, "s": 1, "n": 1, "data_in": 519368, "data_out": 44},
-            "TRACKER_KERNEL": {"video": 0, "screen": 0, "s": 0, "n": 0, "data_in": 519252, "data_out": 1038700},
-            "GUI_KERNEL": {"video": 0, "screen": 1, "s": 0, "n": 0, "data_in": 519376, "data_out": 0}
-        }
+        self.app_params = app_params
 
     def _compute_load(self, device):
+        '''
+        Calculates the load of a device from the ratio between available and total cores.
+        Args:
+            device: device on which the load must be computed
+
+        Returns: the current load percentage
+
+        '''
         load = (1.0 - device["c_available"] / device["c_tot"]) * 100.0
         if load == 0:
             return 0
@@ -230,9 +41,18 @@ class LAVANET(Placement):
         return 100
 
     def _compute_latency(self, task, task_name, device):
+        '''
+        Calculates the latency of a  task scheduled on a device.
+        Args:
+            task: task on which the latency must be computed
+            task_name: name of the task
+            device: device on which the latency must be computed
 
+        Returns: the calculated latency
+
+        '''
         load = str(self._compute_load(device))
-        latency = self._load_lat[device["name"]][task_name][load] * (1-task["n"] * self._beta[device["type"]])
+        latency = self.app_params["_load_lat"][device["name"]][task_name][load] * (1-task["n"] * self.app_params["_beta"][device["type"]])
 
         # LAVA implementation ends here, the next part is the net extension
         if device["wireless"] == 1:
@@ -245,19 +65,39 @@ class LAVANET(Placement):
         return latency
 
     def _compatibility_check(self, device, task, task_name):
-        if device["c_available"] * 100 >= self._creq[device["name"]][task_name]:
+        '''
+                Compute whether the device and the task are compatible in terms of features
+                Args:
+                    task: task
+                    task_name: name of the task
+                    device: device
+                Returns: boolean value
+        '''
+        if device["c_available"] * 100 >= self.app_params["_creq"][device["name"]][task_name]:
             if device["video"] >= task["video"] and device["screen"] >= task["screen"]:
                 return True
         return False
 
     def _allocate_cores(self, device, task_name):
-        core_to_remove = ceil(self._creq[device["name"]][task_name] / 100)
+        '''
+            Allocates the cores on the device accordingly to the task to be allocated and recomputes the IPT.
+            Args:
+                task_name: name of the task
+                device: device
+        '''
+        core_to_remove = ceil(self.app_params["_creq"][device["name"]][task_name] / 100)
         device["c_available"] -= core_to_remove
         if device["type"] == "CPU":
             device["IPT"] = CPU.recompute_ipt(active_cores=device["c_available"], active_threads=device["threads"], freq=device["freq"])
 
     def _find_best_device_on_taskname(self, sim, task_name):
-        module = self._task_param[task_name]
+        '''
+            Insert inside the assignment array the best device with respect to the task name.
+            Args:
+                sim: simulation YAFS class
+                task_name: name of the task
+        '''
+        module = self.app_params["_task_param"][task_name]
         min_d_cost = -1
         for dev in sim.topology.G.nodes():
             d = sim.topology.G.nodes[dev]
@@ -277,6 +117,12 @@ class LAVANET(Placement):
             Exception("Cannot allocate the module " + task_name + " on this network.")
 
     def initial_allocation(self, sim, app_name):
+        '''
+            Function called at the beginning of the simulation that allocates all the application module to the best devices.
+            Args:
+                sim: simulation YAFS class
+                app_name: name of the application to be allocated
+        '''
         app = sim.apps[app_name]
 
         services = app.services
@@ -288,6 +134,12 @@ class LAVANET(Placement):
             idDES = sim.deploy_module(app_name, task_name, m, [curr_device["id"]])
 
     def source_allocation(self, sim, task_name):
+        '''
+            Function called before the simulation that allocates all the source module to the best devices.
+            Args:
+                sim: simulation YAFS class
+                task_name: name of the source task to be allocated
+        '''
         self._find_best_device_on_taskname(sim=sim, task_name=task_name)
         device = self.assignments[len(self.assignments) - 1]["device"]
         self._allocate_cores(device=device, task_name=task_name)
